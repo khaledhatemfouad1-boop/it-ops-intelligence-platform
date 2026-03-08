@@ -1,0 +1,21 @@
+# ── Core ────────────────────────────────────────────────────────
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# ── Kafka ────────────────────────────────────────────────────────
+confluent-kafka>=2.3.0
+
+# ── PostgreSQL ───────────────────────────────────────────────────
+psycopg2-binary>=2.9.9
+
+# ── Active Directory / LDAP ──────────────────────────────────────
+ldap3>=2.9.1
+gssapi>=1.8.3            # Kerberos GSSAPI (Linux/Mac only)
+# pywin32>=306           # Uncomment on Windows for Kerberos
+
+# ── Excel / Data ─────────────────────────────────────────────────
+openpyxl>=3.1.2
+pandas>=2.1.0
+
+# ── Utilities ────────────────────────────────────────────────────
+python-dateutil>=2.8.2

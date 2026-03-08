@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sumerge — IT Asset Intelligence | Power BI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--pbi-bg:#f3f2f1;--pbi-canvas:#ffffff;--pbi-header:#252423;--pbi-accent:#0078d4;--pbi-green:#107c10;--pbi-orange:#c55a11;--pbi-yellow:#a37c00;--pbi-red:#a4262c;--pbi-purple:#7719aa;--pbi-teal:#117865;--pbi-cyan:#00b7c3;--pbi-gray:#605e5c;--pbi-light:#edebe9;--pbi-border:#e1dfdd;--pbi-text:#252423;--pbi-muted:#605e5c;--shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--pbi-bg);font-family:'Inter','Segoe UI',sans-serif;font-size:13px;color:var(--pbi-text);min-height:100vh}
+.pbi-header{background:var(--pbi-header);height:40px;display:flex;align-items:center;padding:0 1rem;gap:1rem}
+.pbi-logo{display:flex;align-items:center;gap:.5rem}.pbi-logo svg{width:20px;height:20px}
+.pbi-logo-text{color:#fff;font-size:.8rem;font-weight:600;letter-spacing:.02em}
+.pbi-doc-title{color:#c8c6c4;font-size:.8rem;margin-left:.5rem}
+.pbi-header-right{margin-left:auto;display:flex;align-items:center;gap:1rem}
+.pbi-badge{background:rgba(0,120,212,.25);color:#60cdff;font-size:.65rem;font-weight:600;letter-spacing:.06em;padding:.15rem .5rem;border-radius:3px;text-transform:uppercase}
+.pbi-last-refresh{color:#a19f9d;font-size:.7rem}
+.report-title-bar{background:#fff;border-bottom:1px solid var(--pbi-border);padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+.report-title{font-size:1.1rem;font-weight:700;color:var(--pbi-text)}
+.report-subtitle{font-size:.75rem;color:var(--pbi-muted)}
+.report-info{display:flex;align-items:center;gap:1rem}
+.sumerge-badge{width:28px;height:28px;background:linear-gradient(135deg,#0078d4,#00b7c3);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem;font-weight:700}
+.sumerge-logo{font-size:.75rem;font-weight:700;color:var(--pbi-muted);letter-spacing:.05em}
+.page-tabs{background:#fff;border-bottom:2px solid var(--pbi-border);padding:0 1.5rem;display:flex;gap:0;overflow-x:auto}
+.page-tab{padding:.6rem 1.25rem;font-size:.78rem;font-weight:500;color:var(--pbi-muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .15s,border-color .15s;background:none;border-top:none;border-left:none;border-right:none}
+.page-tab:hover{color:var(--pbi-text)}.page-tab.active{color:var(--pbi-accent);border-bottom-color:var(--pbi-accent);font-weight:600}
+.canvas{padding:1rem 1.5rem;display:none}.canvas.active{display:block}
+.filter-bar{background:#fff;border:1px solid var(--pbi-border);border-radius:6px;padding:.6rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;box-shadow:var(--shadow)}
+.filter-label{font-size:.7rem;font-weight:600;color:var(--pbi-muted);text-transform:uppercase;letter-spacing:.06em;margin-right:.25rem}
+.filter-chip{display:inline-flex;align-items:center;gap:.3rem;background:var(--pbi-bg);border:1px solid var(--pbi-border);border-radius:12px;padding:.2rem .65rem;font-size:.72rem;cursor:pointer;transition:all .15s;color:var(--pbi-text)}
+.filter-chip.active,.filter-chip:hover{background:var(--pbi-accent);color:#fff;border-color:var(--pbi-accent)}
+.kpi-row{display:grid;gap:.75rem;margin-bottom:1rem}
+.kpi-card{background:#fff;border:1px solid var(--pbi-border);border-radius:6px;padding:1rem 1.2rem;box-shadow:var(--shadow);border-top:3px solid var(--kc,var(--pbi-accent));transition:transform .15s,box-shadow .15s}
+.kpi-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.kpi-title{font-size:.68rem;font-weight:600;color:var(--pbi-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
+.kpi-value{font-size:1.8rem;font-weight:700;color:var(--pbi-text);line-height:1.1}
+.kpi-sub{font-size:.7rem;color:var(--pbi-muted);margin-top:.25rem}
+.chart-row{display:grid;gap:.75rem;margin-bottom:.75rem}
+.col-2{grid-template-columns:1fr 1fr}.col-3{grid-template-columns:1fr 1fr 1fr}.col-3-2{grid-template-columns:3fr 2fr}.col-2-1{grid-template-columns:2fr 1fr}
+.chart-card{background:#fff;border:1px solid var(--pbi-border);border-radius:6px;padding:1rem 1.1rem;box-shadow:var(--shadow)}
+.chart-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.chart-card-title{font-size:.75rem;font-weight:700;color:var(--pbi-text)}
+.chart-card-sub{font-size:.65rem;color:var(--pbi-muted)}
+.visual-tag{font-size:.6rem;background:var(--pbi-bg);border:1px solid var(--pbi-border);border-radius:3px;padding:.1rem .4rem;color:var(--pbi-muted)}
+.chart-wrap{position:relative}
+.h120{height:120px}.h160{height:160px}.h200{height:200px}.h240{height:240px}.h260{height:260px}.h280{height:280px}.h320{height:320px}
+.pbi-table{width:100%;border-collapse:collapse;font-size:.75rem}
+.pbi-table thead th{background:var(--pbi-bg);padding:.45rem .75rem;text-align:left;font-weight:600;font-size:.68rem;color:var(--pbi-muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--pbi-border);white-space:nowrap}
+.pbi-table tbody td{padding:.45rem .75rem;border-bottom:1px solid var(--pbi-light);color:var(--pbi-text)}
+.pbi-table tbody tr:hover td{background:#f3f9ff}
+.pbi-table-wrap{max-height:280px;overflow-y:auto}
+.badge{display:inline-block;padding:.1rem .45rem;border-radius:3px;font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.bg{background:#eff6fc;color:#0078d4}.go{background:#dff6dd;color:#107c10}.bo{background:#fff4ce;color:#a37c00}
+.br{background:#fde7e9;color:#a4262c}.gy{background:var(--pbi-bg);color:var(--pbi-muted)}.bt{background:#dff5f8;color:#117865}.bp{background:#f4e7f8;color:#7719aa}
+.hbar-list{padding:.25rem 0}
+.hbar-item{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
+.hbar-label{font-size:.72rem;color:var(--pbi-text);min-width:160px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar-track{flex:1;height:16px;background:var(--pbi-bg);border-radius:2px;overflow:hidden}
+.hbar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.hbar-val{font-size:.68rem;font-weight:600;color:var(--pbi-muted);min-width:28px;text-align:right}
+.donut-legend{margin-top:.75rem;display:grid;grid-template-columns:1fr 1fr;gap:.3rem .5rem}
+.legend-item{display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:var(--pbi-muted)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--pbi-light)}::-webkit-scrollbar-thumb{background:#c8c6c4;border-radius:3px}
+@media(max-width:900px){.col-2,.col-3,.col-3-2,.col-2-1{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="pbi-header">
+  <div class="pbi-logo">
+    <svg viewBox="0 0 20 20" fill="none"><rect x="1" y="10" width="4" height="9" rx="1" fill="#f2c811"/><rect x="7" y="6" width="4" height="13" rx="1" fill="#f2c811"/><rect x="13" y="1" width="4" height="18" rx="1" fill="#f2c811"/></svg>
+    <span class="pbi-logo-text">Power BI</span>
+  </div>
+  <span class="pbi-doc-title">Sumerge — IT Asset Intelligence Platform</span>
+  <div class="pbi-header-right">
+    <span class="pbi-badge">Published</span>
+    <span class="pbi-last-refresh">Source: PostgreSQL (itopsdb) · Refreshed Feb 2026</span>
+  </div>
+</div>
+
+<div class="report-title-bar">
+  <div class="report-info">
+    <div class="sumerge-badge">S</div>
+    <div>
+      <div class="report-title">IT Asset Intelligence Platform</div>
+      <div class="report-subtitle">Sumerge · Hardware Inventory &amp; Lifecycle Management · 429 Active Devices · EGY / KSA / UAE</div>
+    </div>
+  </div>
+  <div class="sumerge-logo">SUMERGE</div>
+</div>
+
+<div class="page-tabs">
+  <button class="page-tab active" onclick="switchPage(0)">Overview</button>
+  <button class="page-tab" onclick="switchPage(1)">Notebooks Delivered</button>
+  <button class="page-tab" onclick="switchPage(2)">Hardware Age &amp; Risk</button>
+  <button class="page-tab" onclick="switchPage(3)">Full Asset Inventory</button>
+  <button class="page-tab" onclick="switchPage(4)">IT Ops Pipeline</button>
+</div>
+
+<!-- PAGE 0 -->
+<div class="canvas active" id="pg-0">
+  <div class="kpi-row" style="grid-template-columns:repeat(7,1fr)">
+    <div class="kpi-card" style="--kc:#0078d4"><div class="kpi-title">Total Delivered</div><div class="kpi-value">429</div><div class="kpi-sub">Notebooks assigned</div></div>
+    <div class="kpi-card" style="--kc:#107c10"><div class="kpi-title">Stock — Ready</div><div class="kpi-value">27</div><div class="kpi-sub">Available for deployment</div></div>
+    <div class="kpi-card" style="--kc:#c55a11"><div class="kpi-title">Stock — Not Ready</div><div class="kpi-value">18</div><div class="kpi-sub">Needs maintenance</div></div>
+    <div class="kpi-card" style="--kc:#7719aa"><div class="kpi-title">Under Maintenance</div><div class="kpi-value">9</div><div class="kpi-sub">External service</div></div>
+    <div class="kpi-card" style="--kc:#a4262c"><div class="kpi-title">Scrapped</div><div class="kpi-value">54</div><div class="kpi-sub">End of life</div></div>
+    <div class="kpi-card" style="--kc:#117865"><div class="kpi-title">Donated</div><div class="kpi-value">17</div><div class="kpi-sub">Old notebooks</div></div>
+    <div class="kpi-card" style="--kc:#00b7c3"><div class="kpi-title">Server Room</div><div class="kpi-value">31</div><div class="kpi-sub">Servers &amp; network</div></div>
+  </div>
+  <div class="chart-row col-3">
+    <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Devices by Brand</div><div class="chart-card-sub">429 delivered notebooks</div></div><span class="visual-tag">Donut</span></div><div class="chart-wrap h160"><canvas id="ch-brand"></canvas></div><div class="donut-legend" id="brand-leg"></div></div>
+    <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Devices by Location</div><div class="chart-card-sub">EGY / KSA / UAE</div></div><span class="visual-tag">Donut</span></div><div class="chart-wrap h160"><canvas id="ch-loc"></canvas></div><div class="donut-legend" id="loc-leg"></div></div>
+    <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Inventory Lifecycle</div><div class="chart-card-sub">All hardware states</div></div><span class="visual-tag">Donut</span></div><div class="chart-wrap h160"><canvas id="ch-status"></canvas></div><div class="donut-legend" id="status-leg"></div></div>
+  </div>
+  <div class="chart-row col-2">
+    <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Notebooks by Department</div><div class="chart-card-sub">All locations</div></div><span class="visual-tag">Bar</span></div><div class="hbar-list" id="dept-bars"></div></div>
+    <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Monthly Delivery Trend</div><div class="chart-card-sub">Jan 2023 – Jan 2026</div></div><span class="visual-tag">Line</span></div><div class="chart-wrap h240"><canvas id="ch-trend"></canvas></div></div>
+  </div>
+</div>
+
+<!-- PAGE 1 -->
+<div class="canvas" id="pg-1">
+  <div class="filter-bar">
+    <div><span class="filter-label">Location</span><span class="filter-chip active" onclick="this.classList.toggle('active')">Egypt (359)</span><span class="filter-chip" onclick="this.classList.toggle('active')">KSA (67)</span><span class="filter-chip" onclick="this.classList.toggle('active')">UAE (1)</span></div>
+    <div><span class="filter-label">Brand</span><span class="filter-chip active" onclick="this.classList.toggle('active')">Dell (202)</span><span class="filter-chip active" onclick="this.classList.toggle('active')">HP (136)</span><span class="filter-chip active" onclick="this.classList.toggle('active')">Lenovo (67)</span><span class="filter-chip active" onclick="this.classList.toggle('active')">Apple (19)</span></div>
+  </div>
+  <div class="chart-row col-2">
+    <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Top 10 Notebook Models</div><div class="chart-card-sub">By delivery count</div></div><span class="visual-tag">Bar</span></div><div class="chart-wrap h280"><canvas id="ch-models"></canvas></div></div>
+    <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Department Distribution — EGY vs KSA</div><div class="chart-card-sub">Top 10 departments</div></div><span class="visual-tag">Stacked bar</span></div><div class="chart-wrap h280"><canvas id="ch-dept-loc"></canvas></div></div>
+  </div>
+  <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Recent Deliveries</div><div class="chart-card-sub">Latest 20 assignments · sorted by delivery date</div></div><span class="visual-tag">Table</span></div><div class="pbi-table-wrap"><table class="pbi-table"><thead><tr><th>Asset ID</th><th>Brand</th><th>Model</th><th>Assigned To</th><th>Department</th><th>Loc</th><th>Date</th></tr></thead><tbody id="tb-recent"></tbody></table></div></div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="canvas" id="pg-2">
+  <div class="kpi-row" style="grid-template-columns:repeat(5,1fr)">
+    <div class="kpi-card" style="--kc:#a4262c"><div class="kpi-title">Critical Age (&gt;5 yrs)</div><div class="kpi-value">33</div><div class="kpi-sub">≤2020 production</div></div>
+    <div class="kpi-card" style="--kc:#c55a11"><div class="kpi-title">Aging (3–5 yrs)</div><div class="kpi-value">96</div><div class="kpi-sub">2021–2022 production</div></div>
+    <div class="kpi-card" style="--kc:#a37c00"><div class="kpi-title">Active (1–3 yrs)</div><div class="kpi-value">53</div><div class="kpi-sub">2023–2024 production</div></div>
+    <div class="kpi-card" style="--kc:#107c10"><div class="kpi-title">New (&lt;1 yr)</div><div class="kpi-value">43</div><div class="kpi-sub">2025 deliveries</div></div>
+    <div class="kpi-card" style="--kc:#0078d4"><div class="kpi-title">Year Unknown</div><div class="kpi-value">204</div><div class="kpi-sub">No year recorded</div></div>
+  </div>
+  <div class="chart-row col-2">
+    <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Production Year Distribution</div><div class="chart-card-sub">213 devices with known year · Red = critical age</div></div><span class="visual-tag">Column</span></div><div class="chart-wrap h260"><canvas id="ch-yr"></canvas></div></div>
+    <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Age Risk Assessment</div><div class="chart-card-sub">Lifecycle stages (known years only)</div></div><span class="visual-tag">Donut</span></div><div class="chart-wrap h200"><canvas id="ch-risk"></canvas></div><div class="donut-legend" id="risk-leg"></div></div>
+  </div>
+  <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Brand × Age Breakdown</div><div class="chart-card-sub">Production year grouping by brand</div></div><span class="visual-tag">Stacked bar</span></div><div class="chart-wrap h200"><canvas id="ch-brand-age"></canvas></div></div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="canvas" id="pg-3">
+  <div class="kpi-row" style="grid-template-columns:repeat(6,1fr)">
+    <div class="kpi-card" style="--kc:#0078d4"><div class="kpi-title">Notebooks</div><div class="kpi-value">537</div><div class="kpi-sub">All states combined</div></div>
+    <div class="kpi-card" style="--kc:#117865"><div class="kpi-title">Servers</div><div class="kpi-value">8</div><div class="kpi-sub">Dell PowerEdge R730</div></div>
+    <div class="kpi-card" style="--kc:#7719aa"><div class="kpi-title">Network Devices</div><div class="kpi-value">24</div><div class="kpi-sub">Switches, routers, FW</div></div>
+    <div class="kpi-card" style="--kc:#c55a11"><div class="kpi-title">Printers</div><div class="kpi-value">5</div><div class="kpi-sub">HP &amp; Canon</div></div>
+    <div class="kpi-card" style="--kc:#00b7c3"><div class="kpi-title">Access Points</div><div class="kpi-value">6</div><div class="kpi-sub">Wi-Fi coverage</div></div>
+    <div class="kpi-card" style="--kc:#a37c00"><div class="kpi-title">Other</div><div class="kpi-value">14</div><div class="kpi-sub">Storage, UPS, cameras</div></div>
+  </div>
+  <div class="chart-row col-2">
+    <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Total Asset Mix</div><div class="chart-card-sub">All hardware categories</div></div><span class="visual-tag">Donut</span></div><div class="chart-wrap h200"><canvas id="ch-mix"></canvas></div><div class="donut-legend" id="mix-leg"></div></div>
+    <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Server Room Infrastructure</div><div class="chart-card-sub">31 assets tracked</div></div><span class="visual-tag">Bar</span></div><div class="chart-wrap h200"><canvas id="ch-srv"></canvas></div></div>
+  </div>
+  <div class="chart-card"><div class="chart-card-header"><div><div class="chart-card-title">Notebook Lifecycle Summary</div><div class="chart-card-sub">All notebook states — full picture</div></div><span class="visual-tag">Table</span></div>
+    <table class="pbi-table">
+      <thead><tr><th>Category</th><th>Count</th><th>% of Total</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Delivered (Active)</td><td><strong>429</strong></td><td>79.9%</td><td><span class="badge go">Active</span></td><td>Assigned to Sumerge employees — EGY/KSA/UAE</td></tr>
+        <tr><td>Stock — Ready</td><td><strong>27</strong></td><td>5.0%</td><td><span class="badge bg">Ready</span></td><td>Available for immediate deployment</td></tr>
+        <tr><td>Stock — Not Ready</td><td><strong>18</strong></td><td>3.4%</td><td><span class="badge bo">Maintenance</span></td><td>Requires repair or configuration</td></tr>
+        <tr><td>Stock — Retired</td><td><strong>3</strong></td><td>0.6%</td><td><span class="badge gy">Retired</span></td><td>Removed from active service</td></tr>
+        <tr><td>External Maintenance</td><td><strong>9</strong></td><td>1.7%</td><td><span class="badge bo">Maintenance</span></td><td>HP (3), Dell (3), Lenovo (3)</td></tr>
+        <tr><td>Scrapped</td><td><strong>54</strong></td><td>10.1%</td><td><span class="badge br">EOL</span></td><td>Non-functioning: HP (29), Lenovo (22), Dell (1), Acer (2)</td></tr>
+        <tr><td>Donated</td><td><strong>17</strong></td><td>3.2%</td><td><span class="badge bt">Donated</span></td><td>Old notebooks redeployed outside org</td></tr>
+        <tr style="background:#f3f9ff;font-weight:700"><td>TOTAL</td><td>537</td><td>100%</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PAGE 4 -->
+<div class="canvas" id="pg-4">
+  <div class="chart-row col-2">
+    <div class="chart-card">
+      <div class="chart-card-header"><div class="chart-card-title">Data Integration Pipeline</div></div>
+      <div style="font-size:.65rem;font-weight:700;color:var(--pbi-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">DATA SOURCES</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+        <div style="background:#eff6fc;border:1px solid #c7e0f4;border-radius:4px;padding:.4rem .8rem;font-size:.72rem;color:#0078d4;font-weight:600">Dynamics 365<br><span style="font-weight:400;color:var(--pbi-muted)">6 402 roles</span></div>
+        <div style="background:#eff6fc;border:1px solid #c7e0f4;border-radius:4px;padding:.4rem .8rem;font-size:.72rem;color:#0078d4;font-weight:600">ManageEngine SDP<br><span style="font-weight:400;color:var(--pbi-muted)">UAE · OAuth2</span></div>
+        <div style="background:#eff6fc;border:1px solid #c7e0f4;border-radius:4px;padding:.4rem .8rem;font-size:.72rem;color:#0078d4;font-weight:600">Asset Excel<br><span style="font-weight:400;color:var(--pbi-muted)">537 devices</span></div>
+        <div style="background:#f0f0f0;border:1px solid #ddd;border-radius:4px;padding:.4rem .8rem;font-size:.72rem;color:var(--pbi-muted);font-weight:600">Zabbix<br><span style="font-weight:400">Planned</span></div>
+        <div style="background:#f0f0f0;border:1px solid #ddd;border-radius:4px;padding:.4rem .8rem;font-size:.72rem;color:var(--pbi-muted);font-weight:600">Kaspersky<br><span style="font-weight:400">Planned</span></div>
+      </div>
+      <div style="text-align:center;font-size:1.2rem;color:var(--pbi-muted);margin:.2rem 0">↓</div>
+      <div style="font-size:.65rem;font-weight:700;color:var(--pbi-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">MESSAGE BROKER</div>
+      <div style="background:#fff4ce;border:1px solid #f0d060;border-radius:4px;padding:.5rem 1rem;font-size:.72rem;color:#a37c00;font-weight:600;margin-bottom:.75rem">Redpanda (Kafka) — Docker Compose<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.3rem"><span style="background:rgba(163,124,0,.1);border-radius:3px;padding:.1rem .4rem;font-size:.65rem">dynamics.roles.raw</span><span style="background:rgba(163,124,0,.1);border-radius:3px;padding:.1rem .4rem;font-size:.65rem">sdp.tickets.raw</span><span style="background:rgba(163,124,0,.1);border-radius:3px;padding:.1rem .4rem;font-size:.65rem">assets.hardware.raw</span></div></div>
+      <div style="text-align:center;font-size:1.2rem;color:var(--pbi-muted);margin:.2rem 0">↓</div>
+      <div style="font-size:.65rem;font-weight:700;color:var(--pbi-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">STORAGE</div>
+      <div style="background:#dff5f8;border:1px solid #9fd8e0;border-radius:4px;padding:.5rem 1rem;font-size:.72rem;color:#117865;font-weight:600;margin-bottom:.75rem">PostgreSQL — itopsdb<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.3rem"><span style="background:rgba(17,120,101,.1);border-radius:3px;padding:.1rem .4rem;font-size:.65rem">dynamics_roles</span><span style="background:rgba(17,120,101,.1);border-radius:3px;padding:.1rem .4rem;font-size:.65rem">sdp_tickets</span><span style="background:rgba(17,120,101,.1);border-radius:3px;padding:.1rem .4rem;font-size:.65rem">assets_laptops</span></div></div>
+      <div style="text-align:center;font-size:1.2rem;color:var(--pbi-muted);margin:.2rem 0">↓</div>
+      <div style="font-size:.65rem;font-weight:700;color:var(--pbi-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">VISUALIZATION</div>
+      <div style="display:flex;gap:.5rem"><div style="background:#dff6dd;border:1px solid #9fd89f;border-radius:4px;padding:.4rem .8rem;font-size:.72rem;color:#107c10;font-weight:600">Power BI Desktop<br><span style="font-weight:400;color:var(--pbi-muted)">DirectQuery · Postgres</span></div><div style="background:#dff6dd;border:1px solid #9fd89f;border-radius:4px;padding:.4rem .8rem;font-size:.72rem;color:#107c10;font-weight:600">HTML Dashboard<br><span style="font-weight:400;color:var(--pbi-muted)">GitHub Pages · Public</span></div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <div class="chart-card">
+        <div class="chart-card-header"><div class="chart-card-title">Kafka Topics</div></div>
+        <table class="pbi-table"><thead><tr><th>Topic</th><th>Source</th><th>Records</th><th>Status</th></tr></thead><tbody>
+          <tr><td><code style="font-size:.7rem;color:#a37c00">dynamics.roles.raw</code></td><td>Dynamics 365</td><td>6 402</td><td><span class="badge go">Live</span></td></tr>
+          <tr><td><code style="font-size:.7rem;color:#a37c00">dynamics.userroles.raw</code></td><td>Dynamics 365</td><td>~3 999</td><td><span class="badge go">Live</span></td></tr>
+          <tr><td><code style="font-size:.7rem;color:#a37c00">sdp.tickets.raw</code></td><td>ManageEngine SDP</td><td>—</td><td><span class="badge bo">Setup</span></td></tr>
+          <tr><td><code style="font-size:.7rem;color:#a37c00">assets.hardware.raw</code></td><td>Excel → Postgres</td><td>537</td><td><span class="badge go">Loaded</span></td></tr>
+        </tbody></table>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header"><div class="chart-card-title">Postgres Views for Power BI</div></div>
+        <table class="pbi-table"><thead><tr><th>View</th><th>Purpose</th></tr></thead><tbody>
+          <tr><td><code style="font-size:.7rem;color:#117865">vw_role_user_counts</code></td><td>Roles by BU + user count</td></tr>
+          <tr><td><code style="font-size:.7rem;color:#117865">vw_orphan_roles</code></td><td>Roles with no assignments</td></tr>
+          <tr><td><code style="font-size:.7rem;color:#117865">vw_users_excessive_roles</code></td><td>Over-privileged users</td></tr>
+          <tr><td><code style="font-size:.7rem;color:#117865">vw_laptops_summary</code></td><td>Asset summary by dept/status</td></tr>
+          <tr><td><code style="font-size:.7rem;color:#117865">vw_sdp_sla_by_technician</code></td><td>SLA compliance per tech</td></tr>
+        </tbody></table>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header"><div class="chart-card-title">Technology Stack</div></div>
+        <table class="pbi-table"><thead><tr><th>Component</th><th>Technology</th></tr></thead><tbody>
+          <tr><td>Message Broker</td><td>Redpanda (Kafka-compatible)</td></tr>
+          <tr><td>Database</td><td>PostgreSQL 15 (Docker)</td></tr>
+          <tr><td>Producers</td><td>Python 3.12 + confluent-kafka</td></tr>
+          <tr><td>Auth (SDP)</td><td>OAuth2 / Zoho ME region</td></tr>
+          <tr><td>Visualization</td><td>Power BI Desktop + HTML</td></tr>
+          <tr><td>Source Control</td><td>GitHub</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const D={
+  brand:{Dell:202,HP:136,Lenovo:67,Apple:19,Samsung:1},
+  loc:{EGY:359,KSA:67,UAE:1},
+  dept:{'Software Engineering':145,'Quality Engineering':60,'Integration Engineering':48,'Human Resources':27,'Project Management':26,'Support Engineering':24,'Business Analysis':22,'Sales':20,'Platform Engineering':15,'Finance':10,'Tech-Sales':9,'IT':8,'Marketing':6,'Management':3},
+  monthly:{'Jan 23':4,'Feb 23':2,'Mar 23':9,'Apr 23':2,'Jun 23':2,'Aug 23':7,'Sep 23':2,'Oct 23':3,'Nov 23':3,'Dec 23':6,'Jan 24':11,'Feb 24':1,'Mar 24':2,'Apr 24':3,'May 24':7,'Jun 24':2,'Jul 24':3,'Aug 24':3,'Sep 24':6,'Oct 24':7,'Nov 24':3,'Dec 24':1,'Feb 25':1,'Nov 25':4,'Dec 25':39,'Jan 26':1},
+  models:{'Latitude 5540':73,'ProBook 450 G7':33,'Latitude 5440':32,'Latitude 3520':29,'E14':27,'E16':16,'ProBook 450 G9':14,'EliteBook 840 G9':13,'MacBook Air M1':11,'Latitude 5420':10},
+  prodYear:{'2012':1,'2015':3,'2016':3,'2018':12,'2019':14,'2020':31,'2021':70,'2022':26,'2023':52,'2024':1},
+  deptEgy:{'Software Engineering':139,'Quality Engineering':56,'Integration Engineering':41,'Human Resources':27,'Project Management':8,'Support Engineering':21,'Business Analysis':10,'Sales':9,'Platform Engineering':12,'Finance':9},
+  deptKsa:{'Software Engineering':6,'Quality Engineering':3,'Integration Engineering':7,'Human Resources':0,'Project Management':18,'Support Engineering':2,'Business Analysis':12,'Sales':10,'Platform Engineering':3,'Finance':1},
+  recent:[
+    {a:'SUMNB1633',b:'Lenovo',m:'E14',p:'Golnar Ibrahim',d:'Finance',l:'EGY',dt:'2026-01-04'},
+    {a:'SUMNB1247',b:'HP',m:'ProBook 450 G7',p:'Kareem Omar',d:'Software Engineering',l:'EGY',dt:'2025-12-30'},
+    {a:'SUMNB1329',b:'Dell',m:'Latitude 5320',p:'Habiba Mohamed',d:'Human Resources',l:'EGY',dt:'2025-12-30'},
+    {a:'SUMNB1066',b:'Dell',m:'Latitude 5540',p:'Habiba Yahya',d:'Quality Engineering',l:'EGY',dt:'2025-12-30'},
+    {a:'SUMNB1631',b:'Dell',m:'Latitude 5540',p:'Omar Atef',d:'Software Engineering',l:'EGY',dt:'2025-12-24'},
+    {a:'SUMNB1107',b:'Dell',m:'Latitude 3520',p:'Nada Wagdy',d:'Integration Engineering',l:'EGY',dt:'2025-12-21'},
+    {a:'SUMNB1078',b:'Dell',m:'Latitude 5420',p:'Mohab Gouda',d:'Integration Engineering',l:'EGY',dt:'2025-12-21'},
+    {a:'SUMNB1632',b:'Lenovo',m:'E14',p:'AlShaymaa Haikal',d:'Integration Engineering',l:'EGY',dt:'2025-12-21'},
+    {a:'SUMNB1585',b:'Dell',m:'Pro 14 Plus',p:'Ahmed Shawareb',d:'Quality Engineering',l:'EGY',dt:'2025-12-21'},
+    {a:'SUMNB1630',b:'Lenovo',m:'E14',p:'Tasneem Mohamed Mansour',d:'Quality Engineering',l:'EGY',dt:'2025-12-21'},
+    {a:'SUMNB1201',b:'HP',m:'ProBook 450 G7',p:'Yossef Elkassaby',d:'Integration Engineering',l:'EGY',dt:'2025-12-21'},
+    {a:'SUMNB1284',b:'HP',m:'EliteBook 840 G10',p:'Ahmed Mohamed Abdelaziz',d:'Integration Engineering',l:'EGY',dt:'2025-12-21'},
+    {a:'SUMNB1629',b:'Lenovo',m:'E14',p:'Kareem Ahmed',d:'Software Engineering',l:'EGY',dt:'2025-12-21'},
+    {a:'SUMNB1600',b:'Apple',m:'MacBook Air M2',p:'Adel Asaad',d:'Software Engineering',l:'EGY',dt:'2025-12-15'},
+    {a:'SUMNB2134',b:'Lenovo',m:'Yoga Slim 7i Pro',p:'Aly Sherif Hassan',d:'Project Management',l:'KSA',dt:'2025-12-14'},
+    {a:'SUMNB1627',b:'Lenovo',m:'E14',p:'Ahmed Abdelrahman',d:'Integration Engineering',l:'EGY',dt:'2025-12-10'},
+    {a:'SUMNB1628',b:'Lenovo',m:'E16',p:'Gehad Hassan',d:'Integration Engineering',l:'EGY',dt:'2025-12-10'},
+    {a:'SUMNB1626',b:'Lenovo',m:'E14',p:'Hossam Eleissawy',d:'Integration Engineering',l:'EGY',dt:'2025-12-10'},
+    {a:'SUMNB1600',b:'Apple',m:'MacBook Air M2',p:'Adel Asaad',d:'Software Engineering',l:'EGY',dt:'2025-12-15'},
+    {a:'SUMNB1116',b:'HP',m:'EliteBook 840 G10',p:'Ahmed ElMossallamy',d:'Marketing',l:'EGY',dt:'2024-10-24'},
+  ]
+};
+
+const PB=['#0078d4','#c55a11','#117865','#a4262c','#a37c00','#7719aa','#00b7c3','#107c10','#d13438','#e43ba6','#0099bc','#8764b8','#ff8c00','#00b294'];
+Chart.defaults.font.family="'Inter','Segoe UI',sans-serif";
+Chart.defaults.font.size=11;
+Chart.defaults.color='#605e5c';
+Chart.defaults.borderColor='#e1dfdd';
+const cx=id=>document.getElementById(id).getContext('2d');
+
+function donut(id,labels,values,colors,legId){
+  new Chart(cx(id),{type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw}`}}}}});
+  if(legId){const el=document.getElementById(legId);labels.forEach((l,i)=>{el.innerHTML+=`<div class="legend-item"><div class="legend-dot" style="background:${colors[i]}"></div>${l}: <strong>${values[i]}</strong></div>`});}
+}
+
+donut('ch-brand',Object.keys(D.brand),Object.values(D.brand),['#0078d4','#c55a11','#117865','#a4262c','#a37c00'],'brand-leg');
+donut('ch-loc',['EGY','KSA','UAE'],[359,67,1],['#0078d4','#c55a11','#117865'],'loc-leg');
+donut('ch-status',['Delivered','Ready','Not Ready','Retired','Maint.','Scrapped','Donated'],[429,27,18,3,9,54,17],['#0078d4','#107c10','#c55a11','#605e5c','#7719aa','#a4262c','#117865'],'status-leg');
+donut('ch-risk',['Critical','Aging','Active'],[33,96,53],['#a4262c','#c55a11','#107c10'],'risk-leg');
+donut('ch-mix',['Notebooks','Servers','Network','Storage/UPS','Printers','APs','Other'],[537,8,24,7,5,6,8],['#0078d4','#117865','#7719aa','#a37c00','#c55a11','#00b7c3','#605e5c'],'mix-leg');
+
+// Dept hbars
+(()=>{const c=document.getElementById('dept-bars');const mx=145;Object.entries(D.dept).forEach(([n,v],i)=>{c.innerHTML+=`<div class="hbar-item"><div class="hbar-label" title="${n}">${n}</div><div class="hbar-track"><div class="hbar-fill" style="width:${Math.round(v/mx*100)}%;background:${PB[i]||'#0078d4'}"></div></div><div class="hbar-val">${v}</div></div>`})})();
+
+// Monthly trend
+new Chart(cx('ch-trend'),{type:'line',data:{labels:Object.keys(D.monthly),datasets:[{label:'Deliveries',data:Object.values(D.monthly),borderColor:'#0078d4',backgroundColor:'rgba(0,120,212,.08)',fill:true,tension:.3,pointRadius:3,pointBackgroundColor:'#0078d4',pointBorderColor:'#fff',pointBorderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45,font:{size:9}}},y:{beginAtZero:true}}}});
+
+// Models bar
+new Chart(cx('ch-models'),{type:'bar',data:{labels:Object.keys(D.models),datasets:[{label:'Count',data:Object.values(D.models),backgroundColor:'#0078d4',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true},y:{ticks:{font:{size:10}}}}}});
+
+// Dept location stacked
+new Chart(cx('ch-dept-loc'),{type:'bar',data:{labels:Object.keys(D.deptEgy),datasets:[{label:'Egypt',data:Object.values(D.deptEgy),backgroundColor:'#0078d4',borderRadius:2},{label:'KSA',data:Object.values(D.deptKsa),backgroundColor:'#c55a11',borderRadius:2}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{x:{stacked:true,beginAtZero:true},y:{stacked:true,ticks:{font:{size:10}}}}}});
+
+// Production year
+(()=>{const labels=Object.keys(D.prodYear);const values=Object.values(D.prodYear);const colors=labels.map(y=>parseInt(y)<=2020?'#a4262c':parseInt(y)<=2022?'#c55a11':'#107c10');new Chart(cx('ch-yr'),{type:'bar',data:{labels,datasets:[{label:'Devices',data:values,backgroundColor:colors,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}})})();
+
+// Brand × Age
+new Chart(cx('ch-brand-age'),{type:'bar',data:{labels:['Dell','HP','Lenovo','Apple'],datasets:[{label:'Critical (≤2020)',data:[18,12,3,0],backgroundColor:'#a4262c',borderRadius:2},{label:'Aging (2021-22)',data:[44,22,10,0],backgroundColor:'#c55a11',borderRadius:2},{label:'Active (2023-24)',data:[30,14,8,1],backgroundColor:'#107c10',borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+
+// Server room
+new Chart(cx('ch-srv'),{type:'bar',data:{labels:['Servers','Switches','Routers','Storage','Firewalls','UPS/Batteries','Backup','NVR/Other'],datasets:[{data:[8,8,5,4,4,3,2,2],backgroundColor:'#117865',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:2}}}}});
+
+// Recent table
+(()=>{const tb=document.getElementById('tb-recent');const bb={Dell:'bg',HP:'bo',Lenovo:'bt',Apple:'gy'};const lb={EGY:'go',KSA:'bp',UAE:'bg'};D.recent.forEach(r=>{tb.innerHTML+=`<tr><td><code style="font-size:.7rem;color:#0078d4">${r.a}</code></td><td><span class="badge ${bb[r.b]||'gy'}">${r.b}</span></td><td>${r.m}</td><td><strong>${r.p}</strong></td><td>${r.d}</td><td><span class="badge ${lb[r.l]||'gy'}">${r.l}</span></td><td style="font-variant-numeric:tabular-nums">${r.dt}</td></tr>`)})})();
+
+// Page switch
+const tabs=document.querySelectorAll('.page-tab'),pgs=document.querySelectorAll('.canvas');
+function switchPage(i){tabs.forEach((t,j)=>t.classList.toggle('active',i===j));pgs.forEach((p,j)=>p.classList.toggle('active',i===j));}
+</script>
+</body>
+</html>
