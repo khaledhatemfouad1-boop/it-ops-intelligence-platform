@@ -1,0 +1,389 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_ITOPSDB",
+      "label": "itopsdb",
+      "description": "PostgreSQL on EC2 - itopsdb",
+      "type": "datasource",
+      "pluginId": "postgres",
+      "pluginName": "PostgreSQL"
+    }
+  ],
+  "__requires": [
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "10.0.0" },
+    { "type": "datasource", "id": "postgres", "name": "PostgreSQL", "version": "1.0.0" },
+    { "type": "panel", "id": "stat", "name": "Stat", "version": "" },
+    { "type": "panel", "id": "barchart", "name": "Bar chart", "version": "" },
+    { "type": "panel", "id": "piechart", "name": "Pie chart", "version": "" },
+    { "type": "panel", "id": "timeseries", "name": "Time series", "version": "" },
+    { "type": "panel", "id": "table", "name": "Table", "version": "" }
+  ],
+  "annotations": { "list": [] },
+  "description": "Sumerge IT Operations Intelligence Platform - Full Dashboard",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+
+    { "collapsed": false, "gridPos": {"h":1,"w":24,"x":0,"y":0}, "id":100, "title":"🎫 SDP TICKETS", "type":"row" },
+
+    {
+      "id": 1, "type": "stat", "title": "Open Tickets",
+      "gridPos": {"h":4,"w":4,"x":0,"y":1},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"fixedColor":"blue","mode":"fixed"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"blue","value":null}]}, "unit":"none" }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Open Tickets\" FROM public.sdp_tickets WHERE status NOT IN ('Closed','Resolved','Closed - Resolved')", "refId":"A" }]
+    },
+
+    {
+      "id": 2, "type": "stat", "title": "Overdue Tickets",
+      "gridPos": {"h":4,"w":4,"x":4,"y":1},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"red","value":1}]}, "unit":"none" }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Overdue\" FROM public.sdp_tickets WHERE is_overdue = TRUE AND status NOT IN ('Closed','Resolved','Closed - Resolved')", "refId":"A" }]
+    },
+
+    {
+      "id": 3, "type": "stat", "title": "Critical Open",
+      "gridPos": {"h":4,"w":4,"x":8,"y":1},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"orange","value":1},{"color":"red","value":5}]}, "unit":"none" }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Critical\" FROM public.sdp_tickets WHERE LOWER(TRIM(COALESCE(priority,''))) = 'critical' AND status NOT IN ('Closed','Resolved','Closed - Resolved')", "refId":"A" }]
+    },
+
+    {
+      "id": 4, "type": "stat", "title": "Total Tickets",
+      "gridPos": {"h":4,"w":4,"x":12,"y":1},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"fixedColor":"semi-dark-blue","mode":"fixed"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"blue","value":null}]}, "unit":"none" }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Total\" FROM public.sdp_tickets", "refId":"A" }]
+    },
+
+    {
+      "id": 5, "type": "stat", "title": "Resolution Rate",
+      "gridPos": {"h":4,"w":4,"x":16,"y":1},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "decimals":1, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"red","value":null},{"color":"yellow","value":60},{"color":"green","value":80}]}, "unit":"percent" }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT ROUND(100.0 * COUNT(*) FILTER (WHERE status IN ('Closed','Resolved','Closed - Resolved')) / NULLIF(COUNT(*),0), 1) AS \"Resolution %\" FROM public.sdp_tickets", "refId":"A" }]
+    },
+
+    {
+      "id": 6, "type": "stat", "title": "Overdue Rate",
+      "gridPos": {"h":4,"w":4,"x":20,"y":1},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "decimals":1, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":10},{"color":"red","value":25}]}, "unit":"percent" }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT ROUND(100.0 * COUNT(*) FILTER (WHERE is_overdue=TRUE AND status NOT IN ('Closed','Resolved')) / NULLIF(COUNT(*) FILTER (WHERE status NOT IN ('Closed','Resolved')),0), 1) AS \"Overdue %\" FROM public.sdp_tickets", "refId":"A" }]
+    },
+
+    {
+      "id": 7, "type": "piechart", "title": "Tickets by Status",
+      "gridPos": {"h":8,"w":8,"x":0,"y":5},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "legend":{"displayMode":"table","placement":"right","showLegend":true,"values":["value","percent"]},"pieType":"donut","tooltip":{"mode":"single","sort":"none"} },
+      "fieldConfig": { "defaults": { "color":{"mode":"palette-classic"}, "custom":{"hideFrom":{"legend":false,"tooltip":false,"viz":false}} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COALESCE(NULLIF(TRIM(status),''), 'Unknown') AS \"Status\", COUNT(*) AS \"Count\" FROM public.sdp_tickets GROUP BY status ORDER BY \"Count\" DESC", "refId":"A" }]
+    },
+
+    {
+      "id": 8, "type": "piechart", "title": "Tickets by Priority",
+      "gridPos": {"h":8,"w":8,"x":8,"y":5},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "legend":{"displayMode":"table","placement":"right","showLegend":true,"values":["value","percent"]},"pieType":"donut","tooltip":{"mode":"single","sort":"none"} },
+      "fieldConfig": { "defaults": { "color":{"mode":"palette-classic"}, "custom":{"hideFrom":{"legend":false,"tooltip":false,"viz":false}} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COALESCE(NULLIF(TRIM(priority),''), 'Unknown') AS \"Priority\", COUNT(*) AS \"Count\" FROM public.sdp_tickets GROUP BY priority ORDER BY CASE LOWER(TRIM(COALESCE(priority,''))) WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END", "refId":"A" }]
+    },
+
+    {
+      "id": 9, "type": "barchart", "title": "Technician with Most Assigned Tickets",
+      "gridPos": {"h":8,"w":8,"x":16,"y":5},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "barWidth":0.7,"fillOpacity":80,"gradientMode":"none","legend":{"displayMode":"list","placement":"bottom","showLegend":true},"orientation":"horizontal","tooltip":{"mode":"multi","sort":"desc"},"xTickLabelMaxLength":20,"xTickLabelRotation":0 },
+      "fieldConfig": { "defaults": { "color":{"mode":"palette-classic"}, "custom":{"axisCenteredZero":false,"axisColorMode":"text","axisLabel":"","axisPlacement":"auto","fillOpacity":80,"gradientMode":"none","hideFrom":{"legend":false,"tooltip":false,"viz":false},"lineWidth":1,"scaleDistribution":{"type":"linear"},"thresholdsStyle":{"mode":"off"}} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COALESCE(NULLIF(TRIM(assignee),''), 'Unassigned') AS \"Technician\", COUNT(*) AS \"Total Assigned\", COUNT(*) FILTER (WHERE status NOT IN ('Closed','Resolved','Closed - Resolved')) AS \"Open\", COUNT(*) FILTER (WHERE is_overdue=TRUE AND status NOT IN ('Closed','Resolved','Closed - Resolved')) AS \"Overdue\" FROM public.sdp_tickets GROUP BY assignee ORDER BY \"Total Assigned\" DESC LIMIT 10", "refId":"A" }]
+    },
+
+    {
+      "id": 10, "type": "table", "title": "Open Tickets — Overdue First",
+      "gridPos": {"h":8,"w":24,"x":0,"y":13},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "cellHeight":"sm","footer":{"countRows":false,"enablePagination":true,"fields":"","reducer":["sum"],"show":false},"showHeader":true },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "custom":{"align":"left","cellOptions":{"type":"auto"},"inspect":false}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null}]} },
+        "overrides": [
+          {"matcher":{"id":"byName","options":"is_overdue"},"properties":[{"id":"custom.cellOptions","value":{"type":"color-text"}},{"id":"mappings","value":[{"options":{"false":{"color":"green","index":1,"text":"No"},"true":{"color":"red","index":0,"text":"YES"}},"type":"value"}]},{"id":"thresholds","value":{"mode":"absolute","steps":[{"color":"green","value":null}]}}]},
+          {"matcher":{"id":"byName","options":"priority"},"properties":[{"id":"custom.cellOptions","value":{"type":"color-background"}},{"id":"mappings","value":[{"options":{"Critical":{"color":"red","index":0},"High":{"color":"orange","index":1},"Low":{"color":"blue","index":3},"Medium":{"color":"yellow","index":2}},"type":"value"}]}]}
+        ]
+      },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT ticket_id AS \"Ticket ID\", LEFT(COALESCE(subject,''), 60) AS \"Subject\", COALESCE(priority,'?') AS \"priority\", COALESCE(assignee,'Unassigned') AS \"Assignee\", COALESCE(status,'?') AS \"Status\", COALESCE(is_overdue,FALSE) AS \"is_overdue\", created_at AS \"Created\", due_date AS \"Due Date\" FROM public.sdp_tickets WHERE status NOT IN ('Closed','Resolved','Closed - Resolved') ORDER BY is_overdue DESC, CASE LOWER(TRIM(COALESCE(priority,''))) WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END LIMIT 100", "refId":"A" }]
+    },
+
+    { "collapsed": false, "gridPos": {"h":1,"w":24,"x":0,"y":21}, "id":101, "title":"🔑 M365 LICENSES", "type":"row" },
+
+    {
+      "id": 11, "type": "stat", "title": "Licensed Users",
+      "gridPos": {"h":4,"w":4,"x":0,"y":22},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"fixedColor":"semi-dark-blue","mode":"fixed"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"blue","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Licensed Users\" FROM public.ms365_user_licenses", "refId":"A" }]
+    },
+
+    {
+      "id": 12, "type": "stat", "title": "License SKUs",
+      "gridPos": {"h":4,"w":4,"x":4,"y":22},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"fixedColor":"semi-dark-cyan","mode":"fixed"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"blue","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"SKUs\" FROM public.ms365_license_skus WHERE capability_status='Enabled' AND enabled_units < 10000 AND enabled_units > 0", "refId":"A" }]
+    },
+
+    {
+      "id": 13, "type": "stat", "title": "Unused Licenses",
+      "gridPos": {"h":4,"w":4,"x":8,"y":22},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":20},{"color":"red","value":50}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT SUM(GREATEST(0, enabled_units-consumed_units)) AS \"Unused\" FROM public.ms365_license_skus WHERE capability_status='Enabled' AND enabled_units < 10000 AND enabled_units > 0", "refId":"A" }]
+    },
+
+    {
+      "id": 14, "type": "stat", "title": "Est. Monthly Waste (USD)",
+      "gridPos": {"h":4,"w":4,"x":12,"y":22},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "decimals":0, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":1000},{"color":"red","value":5000}]}, "unit":"currencyUSD" }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT SUM(GREATEST(0, enabled_units-consumed_units)) * 35 AS \"Waste USD\" FROM public.ms365_license_skus WHERE capability_status='Enabled' AND enabled_units < 10000 AND enabled_units > 0", "refId":"A" }]
+    },
+
+    {
+      "id": 15, "type": "stat", "title": "Over-Licensed SKUs",
+      "gridPos": {"h":4,"w":4,"x":16,"y":22},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"red","value":1}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Over-Licensed\" FROM public.ms365_license_skus WHERE consumed_units > enabled_units AND capability_status='Enabled'", "refId":"A" }]
+    },
+
+    {
+      "id": 16, "type": "stat", "title": "Disabled w/ License",
+      "gridPos": {"h":4,"w":4,"x":20,"y":22},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"red","value":1}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Disabled w/ License\" FROM public.ms365_user_licenses WHERE account_enabled = FALSE", "refId":"A" }]
+    },
+
+    {
+      "id": 17, "type": "barchart", "title": "License Utilization % by SKU",
+      "gridPos": {"h":8,"w":12,"x":0,"y":26},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "barWidth":0.7,"fillOpacity":80,"gradientMode":"none","legend":{"displayMode":"list","placement":"bottom","showLegend":false},"orientation":"horizontal","tooltip":{"mode":"multi","sort":"desc"} },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "custom":{"fillOpacity":80,"lineWidth":1}, "thresholds":{"mode":"absolute","steps":[{"color":"red","value":null},{"color":"yellow","value":50},{"color":"green","value":80}]}, "unit":"percent", "min":0, "max":100 }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT REPLACE(sku_part_number,'_',' ') AS \"License\", ROUND(utilization_pct,1) AS \"Utilization %\" FROM public.ms365_license_skus WHERE capability_status='Enabled' AND enabled_units < 10000 AND enabled_units > 0 ORDER BY utilization_pct DESC", "refId":"A" }]
+    },
+
+    {
+      "id": 18, "type": "table", "title": "License Waste Detail",
+      "gridPos": {"h":8,"w":12,"x":12,"y":26},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "cellHeight":"sm","footer":{"show":false},"showHeader":true },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "custom":{"align":"left","cellOptions":{"type":"auto"}}, "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT REPLACE(sku_part_number,'_',' ') AS \"License\", consumed_units AS \"Used\", enabled_units AS \"Total\", GREATEST(0,enabled_units-consumed_units) AS \"Unused\", ROUND(utilization_pct,1) AS \"Util %\", GREATEST(0,enabled_units-consumed_units)*35 AS \"Waste USD\" FROM public.ms365_license_skus WHERE capability_status='Enabled' AND enabled_units < 10000 AND enabled_units > 0 ORDER BY \"Waste USD\" DESC", "refId":"A" }]
+    },
+
+    { "collapsed": false, "gridPos": {"h":1,"w":24,"x":0,"y":34}, "id":102, "title":"🛡 SECURITY — KASPERSKY", "type":"row" },
+
+    {
+      "id": 19, "type": "stat", "title": "Total Threat Events",
+      "gridPos": {"h":4,"w":4,"x":0,"y":35},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"fixedColor":"red","mode":"fixed"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"red","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Total Events\" FROM public.kaspersky_threat_events WHERE detected_at IS NOT NULL", "refId":"A" }]
+    },
+
+    {
+      "id": 20, "type": "stat", "title": "Events Last 7 Days",
+      "gridPos": {"h":4,"w":4,"x":4,"y":35},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":50},{"color":"red","value":200}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Last 7 Days\" FROM public.kaspersky_threat_events WHERE detected_at >= NOW() - INTERVAL '7 days' AND detected_at IS NOT NULL", "refId":"A" }]
+    },
+
+    {
+      "id": 21, "type": "stat", "title": "Devices at Risk",
+      "gridPos": {"h":4,"w":4,"x":8,"y":35},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":3},{"color":"red","value":7}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(DISTINCT device_name) AS \"Affected Devices\" FROM public.kaspersky_threat_events WHERE detected_at IS NOT NULL", "refId":"A" }]
+    },
+
+    {
+      "id": 22, "type": "stat", "title": "Unique Threat Types",
+      "gridPos": {"h":4,"w":4,"x":12,"y":35},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"fixedColor":"orange","mode":"fixed"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"orange","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(DISTINCT detected_object) AS \"Unique Threats\" FROM public.kaspersky_threat_events", "refId":"A" }]
+    },
+
+    {
+      "id": 23, "type": "stat", "title": "Last Threat Detected",
+      "gridPos": {"h":4,"w":8,"x":16,"y":35},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"fixedColor":"semi-dark-blue","mode":"fixed"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"blue","value":null}]}, "unit":"dateTimeFromNow" }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT EXTRACT(EPOCH FROM MAX(detected_at)) * 1000 AS \"Last Detected\" FROM public.kaspersky_threat_events WHERE detected_at IS NOT NULL", "refId":"A" }]
+    },
+
+    {
+      "id": 24, "type": "timeseries", "title": "Threat Events Over Time",
+      "gridPos": {"h":8,"w":12,"x":0,"y":39},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "legend":{"displayMode":"list","placement":"bottom","showLegend":true},"tooltip":{"mode":"single","sort":"none"} },
+      "fieldConfig": { "defaults": { "color":{"fixedColor":"red","mode":"fixed"}, "custom":{"fillOpacity":15,"gradientMode":"opacity","lineInterpolation":"smooth","lineWidth":2,"pointSize":4,"showPoints":"auto","spanNulls":false}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"time_series", "rawSql":"SELECT DATE_TRUNC('day', detected_at) AS time, COUNT(*) AS \"Threats\" FROM public.kaspersky_threat_events WHERE detected_at IS NOT NULL GROUP BY DATE_TRUNC('day', detected_at) ORDER BY time", "refId":"A" }]
+    },
+
+    {
+      "id": 25, "type": "barchart", "title": "Top 10 Infected Devices",
+      "gridPos": {"h":8,"w":12,"x":12,"y":39},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "barWidth":0.7,"fillOpacity":80,"gradientMode":"none","legend":{"displayMode":"list","placement":"bottom","showLegend":false},"orientation":"horizontal","tooltip":{"mode":"multi","sort":"desc"} },
+      "fieldConfig": { "defaults": { "color":{"fixedColor":"orange","mode":"fixed"}, "custom":{"fillOpacity":80,"lineWidth":1}, "thresholds":{"mode":"absolute","steps":[{"color":"orange","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT UPPER(TRIM(COALESCE(device_name,'UNKNOWN'))) AS \"Device\", COUNT(*) AS \"Events\", COUNT(DISTINCT detected_object) AS \"Unique Threats\" FROM public.kaspersky_threat_events WHERE device_name IS NOT NULL GROUP BY device_name ORDER BY \"Events\" DESC LIMIT 10", "refId":"A" }]
+    },
+
+    {
+      "id": 26, "type": "table", "title": "Recent Threat Events",
+      "gridPos": {"h":7,"w":24,"x":0,"y":47},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "cellHeight":"sm","footer":{"show":false},"showHeader":true },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "custom":{"align":"left","cellOptions":{"type":"auto"}}, "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT UPPER(TRIM(COALESCE(device_name,'UNKNOWN'))) AS \"Device\", LEFT(COALESCE(detected_object,'Unknown'),70) AS \"Detected Object\", COALESCE(object_type,'Unknown') AS \"Type\", LEFT(COALESCE(file_path,''),80) AS \"Path\", detected_at AS \"Detected At\" FROM public.kaspersky_threat_events WHERE detected_at IS NOT NULL ORDER BY detected_at DESC LIMIT 50", "refId":"A" }]
+    },
+
+    { "collapsed": false, "gridPos": {"h":1,"w":24,"x":0,"y":54}, "id":103, "title":"🖥 INFRASTRUCTURE — ZABBIX", "type":"row" },
+
+    {
+      "id": 27, "type": "stat", "title": "Total Hosts",
+      "gridPos": {"h":4,"w":4,"x":0,"y":55},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"fixedColor":"semi-dark-green","mode":"fixed"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Total Hosts\" FROM public.zabbix_hosts", "refId":"A" }]
+    },
+
+    {
+      "id": 28, "type": "stat", "title": "Hosts Available",
+      "gridPos": {"h":4,"w":4,"x":4,"y":55},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"red","value":null},{"color":"yellow","value":300},{"color":"green","value":380}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Available\" FROM public.zabbix_hosts WHERE available = 'Available'", "refId":"A" }]
+    },
+
+    {
+      "id": 29, "type": "stat", "title": "Hosts Unavailable",
+      "gridPos": {"h":4,"w":4,"x":8,"y":55},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":5},{"color":"red","value":15}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Unavailable\" FROM public.zabbix_hosts WHERE available = 'Unavailable'", "refId":"A" }]
+    },
+
+    {
+      "id": 30, "type": "stat", "title": "Host Availability %",
+      "gridPos": {"h":4,"w":4,"x":12,"y":55},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "decimals":1, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"red","value":null},{"color":"yellow","value":85},{"color":"green","value":95}]}, "unit":"percent" }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT ROUND(100.0 * COUNT(*) FILTER (WHERE available='Available') / NULLIF(COUNT(*),0), 1) AS \"Availability %\" FROM public.zabbix_hosts", "refId":"A" }]
+    },
+
+    {
+      "id": 31, "type": "stat", "title": "Active Problems",
+      "gridPos": {"h":4,"w":4,"x":16,"y":55},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":10},{"color":"red","value":20}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Active Problems\" FROM public.zabbix_problems WHERE status = 'PROBLEM'", "refId":"A" }]
+    },
+
+    {
+      "id": 32, "type": "stat", "title": "Critical Unacknowledged",
+      "gridPos": {"h":4,"w":4,"x":20,"y":55},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "colorMode":"background","graphMode":"none","justifyMode":"center","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto" },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "mappings":[], "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"red","value":1}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COUNT(*) AS \"Critical Unacked\" FROM public.zabbix_problems WHERE status='PROBLEM' AND severity::int >= 4 AND acknowledged = FALSE", "refId":"A" }]
+    },
+
+    {
+      "id": 33, "type": "piechart", "title": "Host Availability Distribution",
+      "gridPos": {"h":8,"w":8,"x":0,"y":59},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "legend":{"displayMode":"table","placement":"right","showLegend":true,"values":["value","percent"]},"pieType":"donut","tooltip":{"mode":"single","sort":"none"} },
+      "fieldConfig": { "defaults": { "color":{"mode":"palette-classic"}, "custom":{"hideFrom":{"legend":false,"tooltip":false,"viz":false}} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COALESCE(available,'Unknown') AS \"Status\", COUNT(*) AS \"Hosts\" FROM public.zabbix_hosts GROUP BY available", "refId":"A" }]
+    },
+
+    {
+      "id": 34, "type": "barchart", "title": "Problems by Severity",
+      "gridPos": {"h":8,"w":8,"x":8,"y":59},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "barWidth":0.7,"fillOpacity":80,"gradientMode":"none","legend":{"displayMode":"list","placement":"bottom","showLegend":false},"orientation":"vertical","tooltip":{"mode":"multi","sort":"desc"} },
+      "fieldConfig": { "defaults": { "color":{"mode":"palette-classic"}, "custom":{"fillOpacity":80,"lineWidth":1} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COALESCE(severity_label,'Unknown') AS \"Severity\", COUNT(*) AS \"Problems\" FROM public.zabbix_problems WHERE status='PROBLEM' GROUP BY severity_label, severity::int ORDER BY severity::int DESC", "refId":"A" }]
+    },
+
+    {
+      "id": 35, "type": "table", "title": "Active Problems — Critical First",
+      "gridPos": {"h":8,"w":8,"x":16,"y":59},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "cellHeight":"sm","footer":{"show":false},"showHeader":true },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "custom":{"align":"left","cellOptions":{"type":"auto"}}, "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT COALESCE(host_name,'Unknown') AS \"Host\", LEFT(COALESCE(problem_name,'Unknown'),50) AS \"Problem\", COALESCE(severity_label,'Unknown') AS \"Severity\", ROUND(EXTRACT(EPOCH FROM (NOW()-started_at))/3600,1) AS \"Hours Open\", CASE WHEN acknowledged THEN 'Yes' ELSE 'No' END AS \"Acked\" FROM public.zabbix_problems WHERE status='PROBLEM' ORDER BY severity::int DESC, started_at ASC LIMIT 20", "refId":"A" }]
+    },
+
+    { "collapsed": false, "gridPos": {"h":1,"w":24,"x":0,"y":67}, "id":104, "title":"⚙ PIPELINE STATUS", "type":"row" },
+
+    {
+      "id": 36, "type": "table", "title": "All Data Sources — Row Counts & Last Updated",
+      "gridPos": {"h":7,"w":14,"x":0,"y":68},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "cellHeight":"sm","footer":{"show":false},"showHeader":true },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "custom":{"align":"left","cellOptions":{"type":"auto"}}, "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT 'sdp_tickets' AS \"Table\", COUNT(*) AS \"Rows\", MAX(ingested_at) AS \"Last Updated\" FROM public.sdp_tickets UNION ALL SELECT 'ms365_license_skus', COUNT(*), MAX(ingested_at) FROM public.ms365_license_skus UNION ALL SELECT 'ms365_user_licenses', COUNT(*), MAX(ingested_at) FROM public.ms365_user_licenses UNION ALL SELECT 'kaspersky_threat_events', COUNT(*), MAX(ingested_at) FROM public.kaspersky_threat_events UNION ALL SELECT 'zabbix_hosts', COUNT(*), MAX(ingested_at) FROM public.zabbix_hosts UNION ALL SELECT 'zabbix_problems', COUNT(*), MAX(ingested_at) FROM public.zabbix_problems ORDER BY \"Rows\" DESC", "refId":"A" }]
+    },
+
+    {
+      "id": 37, "type": "table", "title": "Pipeline Run History",
+      "gridPos": {"h":7,"w":10,"x":14,"y":68},
+      "datasource": {"type":"postgres","uid":"${DS_ITOPSDB}"},
+      "options": { "cellHeight":"sm","footer":{"show":false},"showHeader":true },
+      "fieldConfig": { "defaults": { "color":{"mode":"thresholds"}, "custom":{"align":"left","cellOptions":{"type":"auto"}}, "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null}]} }, "overrides":[] },
+      "targets": [{ "datasource":{"type":"postgres","uid":"${DS_ITOPSDB}"}, "format":"table", "rawSql":"SELECT pipeline_name AS \"Pipeline\", started_at AS \"Started\", status AS \"Status\", records_written AS \"Records\", ROUND(EXTRACT(EPOCH FROM (finished_at-started_at))) AS \"Sec\" FROM public.pipeline_runs ORDER BY started_at DESC LIMIT 20", "refId":"A" }]
+    }
+
+  ],
+  "refresh": "5m",
+  "schemaVersion": 38,
+  "tags": ["itops","sumerge","postgresql"],
+  "templating": { "list": [] },
+  "time": { "from": "now-30d", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Sumerge IT Ops Intelligence Platform",
+  "uid": "sumerge-itops-v1",
+  "version": 1
+}

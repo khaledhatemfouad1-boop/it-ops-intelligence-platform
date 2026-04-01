@@ -1,0 +1,128 @@
+{
+  "name": "IT Ops Weekly Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 2 * * 0" }]
+        }
+      },
+      "id": "node-cron",
+      "name": "Every Sunday 02:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8765/ad",
+        "options": { "timeout": 120000 }
+      },
+      "id": "node-ad",
+      "name": "1. Load Active Directory",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8765/sdp",
+        "options": { "timeout": 120000 }
+      },
+      "id": "node-sdp",
+      "name": "2. Load SDP Tickets",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8765/graph",
+        "options": { "timeout": 120000 }
+      },
+      "id": "node-graph",
+      "name": "3. Load M365 Licenses",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [760, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8765/zabbix",
+        "options": { "timeout": 120000 }
+      },
+      "id": "node-zabbix",
+      "name": "4. Load Zabbix",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [980, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8765/kaspersky",
+        "options": { "timeout": 120000 }
+      },
+      "id": "node-kaspersky",
+      "name": "5. Load Kaspersky",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "check-success",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "node-check",
+      "name": "All OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1420, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const t = new Date().toLocaleString('en-GB',{timeZone:'Africa/Cairo'});\nreturn [{ json: { message: `✅ IT Ops pipeline complete at ${t} (Cairo). All loaders succeeded.`, status: 'success' } }];"
+      },
+      "id": "node-ok",
+      "name": "Log Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1640, 180]
+    },
+    {
+      "parameters": {
+        "jsCode": "const t = new Date().toLocaleString('en-GB',{timeZone:'Africa/Cairo'});\nconst err = $json.stderr || $json.error || 'unknown';\nreturn [{ json: { message: `❌ Pipeline FAILED at ${t}. Error: ${err}`, status: 'error', details: $json } }];"
+      },
+      "id": "node-fail",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1640, 420]
+    }
+  ],
+  "connections": {
+    "Every Sunday 02:00":    { "main": [[{ "node": "1. Load Active Directory", "type": "main", "index": 0 }]] },
+    "1. Load Active Directory": { "main": [[{ "node": "2. Load SDP Tickets",    "type": "main", "index": 0 }]] },
+    "2. Load SDP Tickets":   { "main": [[{ "node": "3. Load M365 Licenses",   "type": "main", "index": 0 }]] },
+    "3. Load M365 Licenses": { "main": [[{ "node": "4. Load Zabbix",          "type": "main", "index": 0 }]] },
+    "4. Load Zabbix":        { "main": [[{ "node": "5. Load Kaspersky",        "type": "main", "index": 0 }]] },
+    "5. Load Kaspersky":     { "main": [[{ "node": "All OK?",                  "type": "main", "index": 0 }]] },
+    "All OK?": { "main": [
+      [{ "node": "Log Success", "type": "main", "index": 0 }],
+      [{ "node": "Log Error",   "type": "main", "index": 0 }]
+    ]}
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "templateCredsSetupCompleted": true }
+}

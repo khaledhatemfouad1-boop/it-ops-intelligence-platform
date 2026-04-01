@@ -1,38 +1,119 @@
 services:
+
+  # ── Redpanda (Kafka) ──────────────────────────────────────────
   redpanda:
     image: redpandadata/redpanda:latest
-    container_name: redpanda
+    container_name: itops-redpanda
     command:
-      - redpanda
-      - start
+      - redpanda start
       - --overprovisioned
-      - --smp
-      - '1'
-      - --memory
-      - 1G
-      - --reserve-memory
-      - 0M
-      - --node-id
-      - '0'
-      - --check=false
-      - --kafka-addr
-      - PLAINTEXT://0.0.0.0:9092
-      - --advertise-kafka-addr
-      - PLAINTEXT://localhost:9092
+      - --smp 1
+      - --memory 512M
+      - --reserve-memory 0M
+      - --node-id 0
+      - --kafka-addr PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+      - --pandaproxy-addr 0.0.0.0:8082
+      - --advertise-pandaproxy-addr localhost:8082
     ports:
       - "9092:9092"
+      - "8082:8082"
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    networks: [itops]
 
+  # ── PostgreSQL ────────────────────────────────────────────────
   postgres:
-    image: postgres:16
+    image: postgres:15-alpine
     container_name: itops-postgres
     environment:
-      POSTGRES_USER: itops
-      POSTGRES_PASSWORD: itops
-      POSTGRES_DB: itopsdb
+      POSTGRES_DB:       itopsdb
+      POSTGRES_USER:     itops
+      POSTGRES_PASSWORD:  
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+      - ./sql/00_init.sql:/docker-entrypoint-initdb.d/00_init.sql
+    networks: [itops]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U itops -d itopsdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── n8n Workflow Automation ───────────────────────────────────
+  n8n:
+    image: n8nio/n8n:1.28.0
+    platform: linux/amd64
+    container_name: itops-n8n
+           
+    ports:
+      - "5678:5678"
+    environment:
+      # n8n config
+      N8N_HOST:                    localhost
+      N8N_PORT:                    5678
+      N8N_PROTOCOL:                http
+      WEBHOOK_URL:                 http://localhost:5678/
+      GENERIC_TIMEZONE:            Africa/Cairo
+      N8N_BASIC_AUTH_ACTIVE:       "true"
+      N8N_BASIC_AUTH_USER:         admin
+      N8N_BASIC_AUTH_PASSWORD:     itops2024
+      # Required to enable Execute Command nodes
+      N8N_ALLOW_EXEC:              "true"
+      EXECUTIONS_PROCESS:          main
+      # Pass your .env vars into n8n so Execute Command nodes can use them
+      PG_HOST:                     postgres
+      PG_PORT:                     5432
+      PG_DB:                       itopsdb
+      PG_USER:                     itops
+      PG_PASSWORD:                 itops
+      KAFKA_BROKER:                redpanda:29092
+      TENANT_ID:                   ${TENANT_ID}
+      CLIENT_ID:                   ${CLIENT_ID}
+      CLIENT_SECRET:               ${CLIENT_SECRET}
+      SDP_CLIENT_ID:               ${SDP_CLIENT_ID}
+      SDP_CLIENT_SECRET:           ${SDP_CLIENT_SECRET}
+      SDP_REFRESH_TOKEN:           ${SDP_REFRESH_TOKEN}
+      ZABBIX_URL:                  ${ZABBIX_URL}
+      ZABBIX_API_TOKEN:            ${ZABBIX_API_TOKEN}
+      AD_SERVER:                   ${AD_SERVER}
+      AD_USER:                     ${AD_USER}
+      AD_PASSWORD:                 ${AD_PASSWORD}
+      AD_BASE_DN:                  ${AD_BASE_DN}
+    volumes:
+      - n8n-data:/home/node/.n8n
+      - .:/app                          # Mount repo so n8n can run your scripts
+      - ./logs:/var/log/itops           # Loader log files
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [itops]
+
+# ── Grafana (Real-time monitoring dashboards) ─────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: itops-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: itops2024
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks: [itops]
 
 volumes:
-  pgdata:
+  redpanda-data:
+  postgres-data:
+  kafka-data:
+  zookeeper-data:
+  zookeeper-logs:
+  n8n-data:
+  grafana-data:
+
+networks:
+  itops:
+    driver: bridge
