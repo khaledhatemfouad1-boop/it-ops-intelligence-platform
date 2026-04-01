@@ -1,0 +1,246 @@
+{
+  "name": "IT Ops Weekly Pipeline - Legacy n8n",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "custom",
+              "cronExpression": "0 0 2 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "1",
+      "name": "Every Sunday 02:00",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8765/health",
+        "responseFormat": "json",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "2",
+      "name": "Health Check Runner",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8765/sdp",
+        "responseFormat": "json",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "3",
+      "name": "Load SDP Tickets",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        640,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8765/graph",
+        "responseFormat": "json",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "4",
+      "name": "Load M365 Licenses",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        860,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$node[\"Load SDP Tickets\"].json[\"success\"]}}",
+              "operation": "equal",
+              "value2": true
+            },
+            {
+              "value1": "={{$node[\"Load M365 Licenses\"].json[\"success\"]}}",
+              "operation": "equal",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "5",
+      "name": "All Pipelines OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.pipeline_runs (pipeline_name, status, records_written, started_at, finished_at, error_message) VALUES ('weekly-full', 'success', 0, NOW() - INTERVAL '5 minutes', NOW(), NULL)"
+      },
+      "id": "6",
+      "name": "Log Success to DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.pipeline_runs (pipeline_name, status, records_written, started_at, finished_at, error_message) VALUES ('weekly-full', 'failed', 0, NOW() - INTERVAL '5 minutes', NOW(), 'One or more loaders returned non-success')"
+      },
+      "id": "7",
+      "name": "Log Failure to DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { status: 'success', message: 'SUCCESS', timestamp: new Date().toISOString() } }];"
+      },
+      "id": "8",
+      "name": "Build Summary",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { status: 'failed', message: 'FAILED', timestamp: new Date().toISOString() } }];"
+      },
+      "id": "9",
+      "name": "Build Error Summary",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        380
+      ]
+    }
+  ],
+  "connections": {
+    "Every Sunday 02:00": {
+      "main": [
+        [
+          {
+            "node": "Health Check Runner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Health Check Runner": {
+      "main": [
+        [
+          {
+            "node": "Load SDP Tickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load SDP Tickets": {
+      "main": [
+        [
+          {
+            "node": "Load M365 Licenses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load M365 Licenses": {
+      "main": [
+        [
+          {
+            "node": "All Pipelines OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "All Pipelines OK?": {
+      "main": [
+        [
+          {
+            "node": "Log Success to DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Failure to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Success to DB": {
+      "main": [
+        [
+          {
+            "node": "Build Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Failure to DB": {
+      "main": [
+        [
+          {
+            "node": "Build Error Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
